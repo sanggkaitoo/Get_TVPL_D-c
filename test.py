@@ -1,9 +1,9 @@
 import re
 import feedparser
-import datetime
+from datetime import datetime
 
-print(datetime.now().strftime("%B"))
 
+print(datetime.now().day)
 
 # url = "https://thuvienphapluat.vn/rss.xml"
 # docs = feedparser.parse(url)

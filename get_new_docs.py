@@ -1,7 +1,9 @@
 import feedparser
 import re
 import openpyxl
+import os.path
 from datetime import datetime
+
 
 acronym_name = {
     # "NĐ"   : "Nghị định",
@@ -157,6 +159,14 @@ def remove_pattern_from_string(line):
         return line.replace(match.group(), "", 1).replace("  ", " ")
     return line
 
+def get_month():
+    month = datetime.now().month
+    day = datetime.now().day
+    if day > 20:
+        return month + 1
+    else:
+        return month
+
 def main():
     # 1. Filter data
     docs_list = []
@@ -180,7 +190,26 @@ def main():
     # print(docs_list)
 
     # 2. Remove duplicate data
-    
+    file_path = 'BC Tháng ' + str(get_month()) + '.xlsx'
+    print(os.path.isfile(file_path))
+    if os.path.isfile(file_path):
+
+        workbook = openpyxl.load_workbook(file_path)
+        sheet = workbook.active
+
+        data = []
+
+        for row in sheet.iter_rows(min_row=2, min_col=3, max_col=3, values_only=True):
+            if row[0] is not None:  # Check if the cell is not empty
+                data.append(extract_numbers(row[0]))
+
+        print(data)
+
+        print(docs_list)
+
+        filtered_docs = [sublist for sublist in docs_list if sublist[1] not in data]
+
+        print(filtered_docs)
 
     # 3. Add to excel
     wb = openpyxl.load_workbook(excel)
@@ -193,7 +222,7 @@ def main():
         bottom = openpyxl.styles.Side(style="thin")
     )
 
-    for row_index, row_value in enumerate(docs_list, start = 2):
+    for row_index, row_value in enumerate(docs_list, start = ws.max_row + 1):
         ws.cell(row=row_index, column=1, value=row_index - 1)
         ws.cell(row=row_index, column=2, value=row_value[0])
         ws.cell(row=row_index, column=3, value="Số: " + row_value[1] + " ngày " + row_value[2] + " của " + acronym_name[row_value[3]])
@@ -206,8 +235,22 @@ def main():
             cell = ws.cell(row=row_index, column=col)
             cell.border = thin_border
 
-    wb.save("BC Tháng " + datetime.now().strftime("%B") + ".xlsx")
+    wrap_text_alignment = openpyxl.styles.Alignment(vertical='center', wrapText=True)
+    center_alignment = openpyxl.styles.Alignment(horizontal='center', vertical='center', wrapText=True)
 
+    for row in ws.iter_rows():
+        for cell in row:
+            cell.alignment = wrap_text_alignment
+
+    for cell in ws['A']:
+        cell.alignment = center_alignment
+
+    for cell in ws[1]:
+        cell.alignment = center_alignment
+
+    wb.save("BC Tháng " + str(get_month()) + ".xlsx")
+
+    
 
 
 if __name__ == "__main__":
