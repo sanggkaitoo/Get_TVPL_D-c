@@ -4,28 +4,27 @@ import openpyxl
 from datetime import datetime
 
 acronym_name = {
-    "NĐ"   : "Nghị định",
-    "TT"   : "Thông tư",
-    "CĐ"   : "Công điện",
-    "QĐ"   : "Quyết định",
+    # "NĐ"   : "Nghị định",
+    # "TT"   : "Thông tư",
+    # "CĐ"   : "Công điện",
+    # "QĐ"   : "Quyết định",
     "BTTTT": "Bộ Thông tin và Truyền thông",
     "TTg"  : "Thủ tướng Chính phủ",
     "CP"   : "Chính phủ",
-    "BCT"  : "Bộ Công Thương"
-}
-
-ministry_name = {
+    "BCT"  : "Bộ Công Thương",
     "VPQH" : "Văn phòng Quốc hội",
     "VPCTN" : "Văn phòng Chủ tịch nước",
     "VPCP" : "Văn phòng Chính phủ",
     "TANDTC" : "Tòa án nhân dân tối cao",
     "VKSNDTC" : "Viện Kiểm sát ND tối cao",
+    "TTCP" : "Thanh tra Chính phủ"
+}
+
+ministry_shortname = {
     "BNG" : "Bộ Ngoại giao",
     "BTP" : "Bộ Tư pháp",
     "KTNN" : "Kiểm toán Nhà nước",
     "BKHĐT" : "Bộ Kế hoạch và Đầu tư",
-    "TTCP" : "Thanh tra Chính phủ",
-    "BTTTT" : "Bộ Thông tin và truyền thông",
     "HLHPNVN" : "Hội LH Phụ nữ Việt Nam",
     "ĐTNCSHCM" : "TW Đoàn TN CS HCM",
     "MTTQ" : "UB TW MTTQ Việt Nam",
@@ -42,7 +41,7 @@ ministry_name = {
     "TTXVN" : "Thông tấn xã Việt nam",
     "THVN" : "Đài Truyền hình Việt nam",
     "TNVN" : "Đài Tiếng nói Việt nam",
-    "KHCNVN" : "Viện Khoa học và c.nghệ VN",
+    "KHCNVN" : "Viện Khoa học và công nghệ VN",
     "KHXHVN" : "Viện Khoa học xã hội ViệtNam",
     "BQLHL" : "BQL khu c.nghệ cao Hoà Lạc",
     "BQLVHDL" : "Ban QL làng văn hoá Du lịch",
@@ -108,6 +107,8 @@ def filter_docs(title):
         return True
     if any(word in title for word in exclude_word):
         return False
+    if any(word in title for word in ministry_shortname):
+        return False
     for word in include_word:
         if word in title:
             key_word.append(word)
@@ -135,15 +136,26 @@ def extract_numbers(title):
     return matches[0] if matches else ""
 
 
+# def ministry_name(doc_number):
+#     extracted_string = extract_numbers(doc_number)
+#     if '-' in extracted_string:
+#         return extracted_string.split('-')[-1]
+#     else:
+#         return ""
+
+
 def ministry_name(doc_number):
-    extracted_string = extract_numbers(doc_number)
-    if '-' in extracted_string:
-        return extracted_string.split('-')[-1]
-    else:
-        return ""
+    return next((element for element in acronym_name if element in doc_number), None)
 
 
 # Step 2: Add excel
+def remove_pattern_from_string(line):
+    pattern = r'\b\d{1,4}/[\w-]+(?:/[\w-]+)?'
+    match = re.search(pattern, line)
+    
+    if match:
+        return line.replace(match.group(), "", 1).replace("  ", " ")
+    return line
 
 def main():
     # 1. Filter data
@@ -156,7 +168,8 @@ def main():
             doc_filtered.append(extract_numbers(doc.title))
             doc_filtered.append(date_format(doc.published))
             doc_filtered.append(ministry_name(extract_numbers(doc.title)))
-            doc_filtered.append(doc.title)
+            doc_filtered.append(remove_pattern_from_string(doc.title))
+            doc_filtered.append(doc.links[0].href)
         else:
             continue
         docs_list.append(doc_filtered)
@@ -164,29 +177,36 @@ def main():
     docs_list = sorted(docs_list, key=lambda x: datetime.strptime(x[2], "%d/%m/%Y"))
     # Reverse order sort
     # docs_list = docs_list[::-1]
-    print(docs_list)
+    # print(docs_list)
 
+    # 2. Remove duplicate data
+    
 
-    # 2. Add to excel
-    # wb = openpyxl.load_workbook(excel)
-    # ws = wb.active
+    # 3. Add to excel
+    wb = openpyxl.load_workbook(excel)
+    ws = wb.active
 
-    # thin_border = openpyxl.styles.Border(
-    #     left = openpyxl.styles.Side(style="thin"),
-    #     right = openpyxl.styles.Side(style="thin"),
-    #     top = openpyxl.styles.Side(style="thin"),
-    #     bottom = openpyxl.styles.Side(style="thin")
-    # )
+    thin_border = openpyxl.styles.Border(
+        left = openpyxl.styles.Side(style="thin"),
+        right = openpyxl.styles.Side(style="thin"),
+        top = openpyxl.styles.Side(style="thin"),
+        bottom = openpyxl.styles.Side(style="thin")
+    )
 
-    # for row_index, row_value in enumerate(docs_list, start = 2):
-    #     cell = ws.cell(row=row_index, column=1, value=row_index - 1)
-    #     cell = ws.cell(row=row_index, column=2, value=docs_list[0])
-    #     cell = ws.cell(row=row_index, column=3, value="Số: " + docs_list[1] + " ngày " + docs_list[2] + " của " + )
-    #     cell = 
-    #     cell = ws.cell()
+    for row_index, row_value in enumerate(docs_list, start = 2):
+        ws.cell(row=row_index, column=1, value=row_index - 1)
+        ws.cell(row=row_index, column=2, value=row_value[0])
+        ws.cell(row=row_index, column=3, value="Số: " + row_value[1] + " ngày " + row_value[2] + " của " + acronym_name[row_value[3]])
+        ws.cell(row=row_index, column=4, value=remove_pattern_from_string(row_value[4]))
+        ws.cell(row=row_index, column=6, value=remove_pattern_from_string(row_value[4]))
+        ws.cell(row=row_index, column=6).value='=HYPERLINK("{}", "{}")'.format(row_value[5], "Link Name")
 
-    #     # Add border for a row
-    #     for col in range
+        # Add border for a row
+        for col in range(1,7):
+            cell = ws.cell(row=row_index, column=col)
+            cell.border = thin_border
+
+    wb.save("BC Tháng " + datetime.now().strftime("%B") + ".xlsx")
 
 
 
