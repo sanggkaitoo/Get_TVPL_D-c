@@ -3,7 +3,13 @@ import feedparser
 from datetime import datetime
 
 
-print(datetime.now().day)
+doc = ["Alo", "Ble"]
+
+if doc:
+    print("True")
+else:
+    print("False")
+
 
 # url = "https://thuvienphapluat.vn/rss.xml"
 # docs = feedparser.parse(url)

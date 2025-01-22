@@ -97,7 +97,7 @@ exclude_type = [
     "Quy chuẩn"
 ]
 
-excel = "./Template.xlsx"
+excel = ""
 url = "https://thuvienphapluat.vn/rss.xml"
 docs = feedparser.parse(url)
 
@@ -162,12 +162,19 @@ def remove_pattern_from_string(line):
 def get_month():
     month = datetime.now().month
     day = datetime.now().day
-    if day > 20:
+    if day > 25:
         return month + 1
     else:
         return month
 
 def main():
+
+    if get_month() != datetime.now().month:
+        excel = "./Template.xlsx"
+    else:
+        excel = "./BC Tháng " + str(get_month()) + ".xlsx"
+
+
     # 1. Filter data
     docs_list = []
     for doc in docs.entries:
@@ -191,7 +198,7 @@ def main():
 
     # 2. Remove duplicate data
     file_path = 'BC Tháng ' + str(get_month()) + '.xlsx'
-    print(os.path.isfile(file_path))
+    docs_filtered = docs_list
     if os.path.isfile(file_path):
 
         workbook = openpyxl.load_workbook(file_path)
@@ -203,13 +210,14 @@ def main():
             if row[0] is not None:  # Check if the cell is not empty
                 data.append(extract_numbers(row[0]))
 
-        print(data)
+        docs_filtered = [sublist for sublist in docs_list if sublist[1] not in data]
 
-        print(docs_list)
-
-        filtered_docs = [sublist for sublist in docs_list if sublist[1] not in data]
-
-        print(filtered_docs)
+    if docs_filtered:
+        print("Có " + str(len(docs_filtered)) + " văn bản mới:")
+        for doc in docs_filtered:
+            print("Số: " + doc[1] + " ngày " + doc[2] + " của " + acronym_name[doc[3]])
+    else:
+        print("Không có văn bản mới!")
 
     # 3. Add to excel
     wb = openpyxl.load_workbook(excel)
@@ -222,7 +230,7 @@ def main():
         bottom = openpyxl.styles.Side(style="thin")
     )
 
-    for row_index, row_value in enumerate(docs_list, start = ws.max_row + 1):
+    for row_index, row_value in enumerate(docs_filtered, start = ws.max_row + 1):
         ws.cell(row=row_index, column=1, value=row_index - 1)
         ws.cell(row=row_index, column=2, value=row_value[0])
         ws.cell(row=row_index, column=3, value="Số: " + row_value[1] + " ngày " + row_value[2] + " của " + acronym_name[row_value[3]])
