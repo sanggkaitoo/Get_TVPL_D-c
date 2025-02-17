@@ -23,6 +23,7 @@ acronym_name = {
 }
 
 ministry_shortname = {
+    "BCA" : "Bộ Công an",
     "BNG" : "Bộ Ngoại giao",
     "BTP" : "Bộ Tư pháp",
     "KTNN" : "Kiểm toán Nhà nước",
@@ -57,7 +58,8 @@ ministry_shortname = {
     "BTNMT" : "Bộ Tài nguyên - Môi trường",
     "BXD" : "Bộ Xây dựng",
     "BGTVT" : "Bộ Giao thông vận tải",
-    "UBSMC" : "Uỷ ban Sông Mê Kông"
+    "UBSMC" : "Uỷ ban Sông Mê Kông",
+    "TCT" : "Tổng cục Thuế"
 }
 
 include_word = [
@@ -169,7 +171,7 @@ def get_month():
 
 def main():
 
-    if get_month() != datetime.now().month:
+    if get_month() != datetime.now().month & os.path.isfile("./BC Tháng " + str(get_month()) + ".xlsx"):
         excel = "./Template.xlsx"
     else:
         excel = "./BC Tháng " + str(get_month()) + ".xlsx"
@@ -195,6 +197,7 @@ def main():
     # Reverse order sort
     # docs_list = docs_list[::-1]
     # print(docs_list)
+    # val = input("Stop!!!")
 
     # 2. Remove duplicate data
     file_path = 'BC Tháng ' + str(get_month()) + '.xlsx'
@@ -215,9 +218,11 @@ def main():
     if docs_filtered:
         print("Có " + str(len(docs_filtered)) + " văn bản mới:")
         for doc in docs_filtered:
+            print(doc)
             print("Số: " + doc[1] + " ngày " + doc[2] + " của " + acronym_name[doc[3]])
     else:
         print("Không có văn bản mới!")
+
 
     # 3. Add to excel
     wb = openpyxl.load_workbook(excel)
