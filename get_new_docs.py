@@ -11,6 +11,7 @@ acronym_name = {
     # "CĐ"   : "Công điện",
     # "QĐ"   : "Quyết định",
     "BTTTT": "Bộ Thông tin và Truyền thông",
+    "BKHCN": "Bộ Khoa học và Công nghệ",
     "TTg"  : "Thủ tướng Chính phủ",
     "CP"   : "Chính phủ",
     "BCT"  : "Bộ Công Thương",
@@ -59,7 +60,9 @@ ministry_shortname = {
     "BXD" : "Bộ Xây dựng",
     "BGTVT" : "Bộ Giao thông vận tải",
     "UBSMC" : "Uỷ ban Sông Mê Kông",
-    "TCT" : "Tổng cục Thuế"
+    "TCT" : "Tổng cục Thuế",
+    "CT" : "Cục thuế",
+    "CHQ" : "Cục Hải quan"
 }
 
 include_word = [
@@ -87,12 +90,23 @@ include_word = [
     "Công nghệ",
     "Internet",
     "Phần mềm",
-    "Thông tin"
+    "Thông tin",
+    "Chữ ký điện tử",
+    "Sở hữu trí tuệ",
+    "Nhiệm vụ khoa học và công nghệ",
+    "Sáng kiến",
+    "Đổi mới sáng tạo",
+    "Chuyển giao công nghệ",
+    "An toàn bức xạ"
 ]
 
 
 exclude_word = [
-    "/QĐ-UBND"
+    "/QĐ-UBND",
+    "NQ-HĐND",
+    "KH-UBND",
+    "UBND-KSTTHC",
+    "Dự thảo"
 ]
 
 exclude_type = [
@@ -164,14 +178,14 @@ def remove_pattern_from_string(line):
 def get_month():
     month = datetime.now().month
     day = datetime.now().day
-    if day > 25:
+    if day > 20:
         return month + 1
     else:
         return month
 
 def main():
 
-    if get_month() != datetime.now().month & os.path.isfile("./BC Tháng " + str(get_month()) + ".xlsx"):
+    if not os.path.isfile("./BC Tháng " + str(get_month()) + ".xlsx"):
         excel = "./Template.xlsx"
     else:
         excel = "./BC Tháng " + str(get_month()) + ".xlsx"
@@ -234,7 +248,7 @@ def main():
         top = openpyxl.styles.Side(style="thin"),
         bottom = openpyxl.styles.Side(style="thin")
     )
-
+    
     for row_index, row_value in enumerate(docs_filtered, start = ws.max_row + 1):
         ws.cell(row=row_index, column=1, value=row_index - 1)
         ws.cell(row=row_index, column=2, value=row_value[0])
